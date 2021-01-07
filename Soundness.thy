@@ -153,8 +153,9 @@ lemmas weaken = weaken_isin weaken_ty weaken_tm
 
 lemma strengthen_aux:
   assumes "\<turnstile> \<Gamma>"
-  shows "(\<turnstile> (\<Gamma>' @ BVar x \<tau> # \<Gamma>) \<longrightarrow> \<turnstile> (\<Gamma>' @ \<Gamma>)) \<and> ((\<Gamma>' @ BVar x \<tau> # \<Gamma>) \<turnstile>\<^sub>t\<^sub>y \<sigma> : k \<longrightarrow> (\<Gamma>' @ \<Gamma>) \<turnstile>\<^sub>t\<^sub>y \<sigma> : k)"
-proof (rule Ctx_Ty_induct)
+  shows "(\<turnstile> (\<Gamma>' @ BVar x \<tau> # \<Gamma>) \<longrightarrow> \<turnstile> (\<Gamma>' @ \<Gamma>))"
+    and "((\<Gamma>' @ BVar x \<tau> # \<Gamma>) \<turnstile>\<^sub>t\<^sub>y \<sigma> : k \<longrightarrow> (\<Gamma>' @ \<Gamma>) \<turnstile>\<^sub>t\<^sub>y \<sigma> : k)"
+proof (induction rule: Ctx_Ty_induct)
   fix \<Gamma>' b k2
   assume a: "\<turnstile> \<Gamma>' @ BVar x \<tau> # \<Gamma>" "\<turnstile> \<Gamma>' @ \<Gamma>" "atom (b::tyvar) \<sharp> \<Gamma>' @ BVar x \<tau> # \<Gamma>"
   show "\<turnstile> (BTyVar b k2 # \<Gamma>') @ \<Gamma>" by (metis Ctx.simps a(2) a(3) append_Cons fresh_Cons fresh_append)
@@ -174,17 +175,21 @@ corollary strengthen_ty: "\<Gamma>' @ BVar x \<tau> # \<Gamma> \<turnstile>\<^su
   using strengthen_aux context_split_valid context_valid(1) by blast
 lemmas strengthen = strengthen_context strengthen_ty
 
+thm Ctx_Ty_induct
 lemma type_substitution_aux:
   assumes "\<Gamma> \<turnstile>\<^sub>t\<^sub>y \<sigma> : k"
-  shows "(\<turnstile> (\<Gamma>' @ BTyVar a k # \<Gamma>) \<longrightarrow> \<turnstile> (subst_context \<Gamma>' \<sigma> a @ \<Gamma>)) \<and> ((\<Gamma>' @ BTyVar a k # \<Gamma>) \<turnstile>\<^sub>t\<^sub>y \<tau> : k2 \<longrightarrow> (subst_context \<Gamma>' \<sigma> a @ \<Gamma>) \<turnstile>\<^sub>t\<^sub>y subst_type \<tau> \<sigma> a : k2)"
-proof (rule Ctx_Ty_induct)
-  show "\<turnstile> [][\<sigma>/a] @ \<Gamma>" using context_valid(1)[OF assms] by simp
+  shows "(\<turnstile> (\<Gamma>' @ BTyVar a k # \<Gamma>) \<longrightarrow> \<turnstile> (subst_context \<Gamma>' \<sigma> a @ \<Gamma>))"
+    and "((\<Gamma>' @ BTyVar a k # \<Gamma>) \<turnstile>\<^sub>t\<^sub>y \<tau> : k2 \<longrightarrow> (subst_context \<Gamma>' \<sigma> a @ \<Gamma>) \<turnstile>\<^sub>t\<^sub>y subst_type \<tau> \<sigma> a : k2)"
+proof(induction rule: Ctx_Ty_induct)
+  case Ctx_Empty
+  then show "\<turnstile> [][\<sigma>/a] @ \<Gamma>" using context_valid(1)[OF assms] by simp
 next
-  fix \<Gamma>' a2 k2
-  assume a: "\<turnstile> \<Gamma>' @ BTyVar a k # \<Gamma>" "\<turnstile> \<Gamma>'[\<sigma>/a] @ \<Gamma>" "atom (a2::tyvar) \<sharp> \<Gamma>' @ BTyVar a k # \<Gamma>"
+  case (Ctx_TyVar \<Gamma>' a2 k2)
   then have "atom a2 \<sharp> \<sigma>" using assms fresh_Cons fresh_append fresh_in_context_ty by blast
-  then have 1: "atom a2 \<sharp> \<Gamma>'[\<sigma>/a] @ \<Gamma>" by (meson a(3) fresh_Cons fresh_append fresh_subst_context_tyvar)
-  show "\<turnstile> (BTyVar a2 k2 # \<Gamma>')[\<sigma>/a] @ \<Gamma>" using Ctx_TyVar[OF a(2) 1] assms by auto
+  then have "atom a2 \<sharp> \<Gamma>'[\<sigma>/a] @ \<Gamma>"
+     by (meson Ctx_TyVar(3) fresh_Cons fresh_append fresh_subst_context_tyvar)
+  then show "\<turnstile> (BTyVar a2 k2 # \<Gamma>')[\<sigma>/a] @ \<Gamma>"
+     using Ctx_TyVar.IH(2) Ctx_Ty_Tm.Ctx_TyVar by auto
 next
   fix \<Gamma>' \<tau> x
   assume a: "\<Gamma>' @ BTyVar a k # \<Gamma> \<turnstile>\<^sub>t\<^sub>y \<tau> : \<star>" "\<Gamma>'[\<sigma>/a] @ \<Gamma> \<turnstile>\<^sub>t\<^sub>y \<tau>[\<sigma>/a] : \<star>" "atom (x::var) \<sharp> \<Gamma>' @ BTyVar a k # \<Gamma>"

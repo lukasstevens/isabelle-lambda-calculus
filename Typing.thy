@@ -104,7 +104,7 @@ lemma Ctx_Ty_induct[case_names Ctx_Empty Ctx_TyVar Ctx_Var Ty_Var Ty_App Ty_Unit
   and "\<And>\<Gamma>'. \<lbrakk> \<turnstile> \<Gamma>' @ \<Gamma> ; P \<Gamma>' \<rbrakk> \<Longrightarrow> Q \<Gamma>' TyUnit \<star>"
   and "\<And>\<Gamma>' \<tau>1 \<tau>2. \<lbrakk> \<Gamma>' @ \<Gamma> \<turnstile>\<^sub>t\<^sub>y \<tau>1 : \<star> ; Q \<Gamma>' \<tau>1 \<star> ; \<Gamma>' @  \<Gamma> \<turnstile>\<^sub>t\<^sub>y \<tau>2 : \<star> ; Q \<Gamma>' \<tau>2 \<star> \<rbrakk> \<Longrightarrow> Q \<Gamma>' (\<tau>1 \<rightarrow> \<tau>2) \<star>"
   and "\<And>b k2 \<Gamma>' \<sigma>. \<lbrakk> BTyVar b k2 # \<Gamma>' @ \<Gamma> \<turnstile>\<^sub>t\<^sub>y \<sigma> : \<star> ; Q (BTyVar b k2 # \<Gamma>') \<sigma> \<star> \<rbrakk> \<Longrightarrow> Q \<Gamma>' (\<forall> b : k2 . \<sigma>) \<star>"
-  shows "(\<turnstile> \<Gamma>' @ \<Gamma> \<longrightarrow> P \<Gamma>') \<and> (\<Gamma>' @ \<Gamma> \<turnstile>\<^sub>t\<^sub>y \<tau> : k2 \<longrightarrow> Q \<Gamma>' \<tau> k2)"
+  shows "(\<turnstile> \<Gamma>' @ \<Gamma> \<longrightarrow> P \<Gamma>')" and "(\<Gamma>' @ \<Gamma> \<turnstile>\<^sub>t\<^sub>y \<tau> : k2 \<longrightarrow> Q \<Gamma>' \<tau> k2)"
 proof -
   let ?\<Gamma> = "\<Gamma>' @ \<Gamma>"
   let ?P = "\<lambda>x. \<forall>\<Gamma>2. (x = \<Gamma>2 @ \<Gamma>) \<longrightarrow> (P \<Gamma>2)"
@@ -131,7 +131,7 @@ proof -
       then show ?thesis using assms(3) a by auto
     qed (simp add: assms(1))
   qed (auto simp: assms(1,4-8))
-  then show ?thesis by simp
+  then show "(\<turnstile> \<Gamma>' @ \<Gamma> \<longrightarrow> P \<Gamma>')" and "(\<Gamma>' @ \<Gamma> \<turnstile>\<^sub>t\<^sub>y \<tau> : k2 \<longrightarrow> Q \<Gamma>' \<tau> k2)" by simp_all
 qed
 
 (* context validity *)
